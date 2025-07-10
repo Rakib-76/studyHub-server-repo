@@ -3,6 +3,7 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
+const jwt = require("jsonwebtoken")
 const port = process.env.PORT || 3000;
 
 
@@ -28,6 +29,24 @@ async function run() {
   try {
 
     await client.connect();
+    const db = client.db('studyHub');
+     const usersCollection = db.collection('users');
+
+
+
+   app.post('/users', async (req, res) => {
+            const email = req.body.email;
+            const userExists = await usersCollection.findOne({ email })
+            if (userExists) {
+                // update last log in
+                return res.status(200).send({ message: 'User already exists', inserted: false });
+            }
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
+        })
+
+
     await client.db('admin').command({ping: 1});
     console.log("Pingged your deployment . You successfully connected to the mongodb");
 
@@ -37,6 +56,7 @@ async function run() {
   }
 }
 run().catch(console.dir);
+
 
 
 app.get('/', (req, res) => {
