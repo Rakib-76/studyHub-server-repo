@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
 const jwt = require("jsonwebtoken")
+require('dotenv').config();
 const port = process.env.PORT || 3000;
 
 
@@ -30,29 +31,99 @@ async function run() {
 
     await client.connect();
     const db = client.db('studyHub');
-     const usersCollection = db.collection('users');
+    const usersCollection = db.collection('users');
 
 
 
-   app.post('/users', async (req, res) => {
-            const email = req.body.email;
-            const userExists = await usersCollection.findOne({ email })
-            if (userExists) {
-                // update last log in
-                return res.status(200).send({ message: 'User already exists', inserted: false });
-            }
-            const user = req.body;
-            const result = await usersCollection.insertOne(user);
-            res.send(result);
-        })
+    // midleware
+    // Middleware: verify token
+    const verifyJWT = (req, res, next) => {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).send({ message: 'Unauthorized' });
+
+      const token = authHeader.split(' ')[1];
+      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) return res.status(403).send({ message: 'Forbidden' });
+        req.decoded = decoded;
+        next();
+      });
+    };
+
+    // Middleware: check admin role
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const user = await usersCollection.findOne({ email });
+
+      if (user?.role !== 'admin') {
+        return res.status(403).send({ message: 'Access Denied: Admin Only' });
+      }
+
+      next();
+    };
 
 
-    await client.db('admin').command({ping: 1});
+
+
+    app.post('/users', async (req, res) => {
+      const email = req.body.email;
+      const userExists = await usersCollection.findOne({ email })
+      if (userExists) {
+        // update last log in
+        return res.status(200).send({ message: 'User already exists', inserted: false });
+      }
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    })
+
+    app.post('/jwt', (req, res) => {
+      const { email } = req.body;
+
+      const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+        expiresIn: '1h'
+      });
+
+      res.send({ token });
+    });
+
+
+
+    // Express.js route example
+    app.post('/users/social', async (req, res) => {
+      const user = req.body;
+      const existingUser = await usersCollection.findOne({ email: user.email });
+
+      if (!existingUser) {
+        const result = await usersCollection.insertOne(user);
+        return res.send({ inserted: true, insertedId: result.insertedId });
+      } else {
+        return res.send({ inserted: false, message: "User already exists" });
+      }
+    });
+
+
+    app.get('/users/:email', async (req, res) => {
+      const email = req.params.email;
+      const user = await usersCollection.findOne({ email: email });
+      if (!user) return res.status(404).send({ message: 'User not found' });
+      res.send({ role: user.role });
+    });
+
+
+
+    app.get('/admin/dashboard', verifyJWT, verifyAdmin, (req, res) => {
+      res.send({ message: 'Welcome Admin' });
+    });
+
+
+
+
+    await client.db('admin').command({ ping: 1 });
     console.log("Pingged your deployment . You successfully connected to the mongodb");
 
-    
+
   } finally {
-  
+
   }
 }
 run().catch(console.dir);
