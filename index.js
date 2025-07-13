@@ -136,6 +136,82 @@ async function run() {
       res.send(users);
     });
 
+    // admin view all users 
+    app.get("/users", async (req, res) => {
+      const search = req.query.search || "";
+      const query = {
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } }
+        ]
+      };
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // admin upadate user role
+    app.patch("/users/role/:id", async (req, res) => {
+      const { id } = req.params;
+      const { role } = req.body;
+
+      const result = await usersCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { role } }
+      );
+
+      res.send(result);
+    });
+
+    // Get all study sessions
+    app.get('/admin/sessions', verifyJWT, verifyAdmin, async (req, res) => {
+      const sessions = await sessionsCollection.find().toArray();
+      res.send(sessions);
+    });
+
+    // Approve session
+    app.patch('/admin/sessions/approve/:id', async (req, res) => {
+      const id = req.params.id;
+      const { fee } = req.body;
+      const result = await sessionsCollection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            status: "approved",
+            fee: Number(fee)
+          }
+        }
+      );
+      res.send(result);
+    });
+
+    // Reject session
+    app.delete('/admin/sessions/reject/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await sessionsCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+    // Delete session (only approved)
+    app.delete('/admin/sessions/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await sessionsCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+    // Update session (optional fields)
+    app.patch('/admin/sessions/:id', async (req, res) => {
+      const id = req.params.id;
+      const updateFields = req.body;
+      const result = await sessionsCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateFields }
+      );
+      res.send(result);
+    });
+
+
+
+
 
 
     app.get('/users/:email', async (req, res) => {
