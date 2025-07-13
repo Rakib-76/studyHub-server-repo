@@ -125,6 +125,18 @@ async function run() {
       res.send(session);
     });
 
+    // to get tutor list
+    app.get("/users", async (req, res) => {
+      const roleFilter = req.query.tutor ? "tutor" : null;
+
+      let query = {};
+      if (roleFilter) query = { role: roleFilter };
+
+      const users = await usersCollection.find(query).toArray();
+      res.send(users);
+    });
+
+
 
     app.get('/users/:email', async (req, res) => {
       const email = req.params.email;
