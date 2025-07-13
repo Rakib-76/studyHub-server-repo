@@ -209,6 +209,18 @@ async function run() {
       res.send(result);
     });
 
+    // Get all materials (Admin only)
+    app.get("/admin/materials", verifyJWT, verifyAdmin, async (req, res) => {
+      const materials = await db.collection("materials").find().toArray();
+      res.send(materials);
+    });
+
+    // Delete material by ID(Admin only)
+    app.delete("/admin/materials/:id", verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const result = await db.collection("materials").deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
 
 
 
