@@ -118,6 +118,14 @@ async function run() {
       res.send(result);
     });
 
+    // session details page 
+    app.get("/sessions/:id", async (req, res) => {
+      const { id } = req.params;
+      const session = await sessionsCollection.findOne({ _id: new ObjectId(id) });
+      res.send(session);
+    });
+
+
     app.get('/users/:email', async (req, res) => {
       const email = req.params.email;
       const user = await usersCollection.findOne({ email: email });
