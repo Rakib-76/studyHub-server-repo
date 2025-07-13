@@ -32,6 +32,7 @@ async function run() {
     await client.connect();
     const db = client.db('studyHub');
     const usersCollection = db.collection('users');
+    const sessionsCollection = db.collection("sessions")
 
 
 
@@ -86,6 +87,14 @@ async function run() {
       res.send({ token });
     });
 
+    // create session by tutor
+    // POST /sessions
+    app.post("/sessions", async (req, res) => {
+      const sessionData = req.body;
+      const result = await db.collection("sessions").insertOne(sessionData);
+      res.send(result);
+    });
+
 
 
     // Express.js route example
@@ -101,6 +110,13 @@ async function run() {
       }
     });
 
+
+    // study session get
+
+    app.get("/sessions", async (req, res) => {
+      const result = await sessionsCollection.find().toArray();
+      res.send(result);
+    });
 
     app.get('/users/:email', async (req, res) => {
       const email = req.params.email;
