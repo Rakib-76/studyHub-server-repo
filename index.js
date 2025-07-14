@@ -32,7 +32,8 @@ async function run() {
     await client.connect();
     const db = client.db('studyHub');
     const usersCollection = db.collection('users');
-    const sessionsCollection = db.collection("sessions")
+    const sessionsCollection = db.collection("sessions");
+    const materialsCollection = db.collection("materials")
 
 
 
@@ -269,6 +270,71 @@ async function run() {
         res.status(500).send({ error: "Internal Server Error" });
       }
     });
+
+    // this is tutor create a session materials
+    app.post('/tutor/materials', verifyJWT, async (req, res) => {
+      try {
+        const { title, sessionId, tutorEmail, imageURL, resourceLink } = req.body;
+        if (!title || !sessionId || !tutorEmail) {
+          return res.status(400).send({ error: 'Missing required fields' });
+        }
+
+        const newMaterial = {
+          title,
+          sessionId,
+          tutorEmail,
+          imageURL: imageURL || '',
+          resourceLink: resourceLink || '',
+          createdAt: new Date(),
+        };
+
+        const result = await materialsCollection.insertOne(newMaterial);
+        res.send({ success: true, insertedId: result.insertedId });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: 'Server error while uploading material' });
+      }
+    });
+
+    // TO GET APPROVE SESSION INTO TUTOR 
+    app.post('/tutor/materials', verifyJWT, async (req, res) => {
+      try {
+        const { title, sessionId, tutorEmail, imageURL, resourceLink } = req.body;
+        if (!title || !sessionId || !tutorEmail) {
+          return res.status(400).send({ error: 'Missing required fields' });
+        }
+
+        const newMaterial = {
+          title,
+          sessionId,
+          tutorEmail,
+          imageURL: imageURL || '',
+          resourceLink: resourceLink || '',
+          createdAt: new Date(),
+        };
+
+        const result = await materialsCollection.insertOne(newMaterial);
+        res.send({ success: true, insertedId: result.insertedId });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: 'Server error while uploading material' });
+      }
+    });
+
+    // Approve session get by  tutor 
+
+    app.get('/tutor/sessions/approved', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      if (!email) return res.status(400).send({ error: "Email is required" });
+
+      const result = await sessionsCollection.find({
+        tutorEmail: email,
+        status: 'approved'
+      }).toArray();
+
+      res.send(result);
+    });
+
 
 
 
