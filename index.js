@@ -185,11 +185,18 @@ async function run() {
     });
 
     // Reject session
-    app.delete('/admin/sessions/reject/:id', async (req, res) => {
+    // Just update status to "rejected (only admin)"
+    app.patch('/admin/sessions/reject/:id', async (req, res) => {
       const id = req.params.id;
-      const result = await sessionsCollection.deleteOne({ _id: new ObjectId(id) });
+
+      const result = await sessionsCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: "rejected" } }
+      );
+
       res.send(result);
     });
+
 
     // Delete session (only approved)
     app.delete('/admin/sessions/:id', async (req, res) => {
@@ -221,6 +228,48 @@ async function run() {
       const result = await db.collection("materials").deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
+
+
+    // view approve and regected session by tutor
+    app.get("/tutor/sessions", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const sessions = await sessionsCollection
+        .find({ tutorEmail: email })
+        .toArray();
+      res.send(sessions);
+    });
+
+    // update and patch method by tutor
+    app.patch('/sessions/request/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ error: "Invalid session ID" });
+        }
+
+        const filter = { _id: new ObjectId(id) };
+
+        // Find session first (optional, if you want to check status)
+        const session = await sessionsCollection.findOne(filter);
+        if (!session) {
+          return res.status(404).send({ error: "Session not found" });
+        }
+        if (session.status !== "rejected") {
+          return res.status(400).send({ error: "Session is not rejected, can't request approval" });
+        }
+
+        // Update status
+        const update = { $set: { status: "pending" } };
+        const result = await sessionsCollection.updateOne(filter, update);
+
+        res.send({ message: "Approval request sent", modifiedCount: result.modifiedCount });
+      } catch (error) {
+        console.error("Error updating session status:", error);
+        res.status(500).send({ error: "Internal Server Error" });
+      }
+    });
+
 
 
 
