@@ -472,7 +472,19 @@ async function run() {
       res.send(result);
     });
 
+    // here get all materials by student
+    app.get('/bookings', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const result = await bookingsCollection.find({ studentEmail: email }).toArray();
+      res.send(result);
+    });
 
+    // here get all materials by student
+    app.get('/materials/:sessionId', verifyJWT, async (req, res) => {
+      const sessionId = req.params.sessionId;
+      const result = await materialsCollection.find({ sessionId }).toArray();
+      res.send(result);
+    });
 
 
 
