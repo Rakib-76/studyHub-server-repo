@@ -325,15 +325,30 @@ async function run() {
 
     app.get('/tutor/sessions/approved', verifyJWT, async (req, res) => {
       const email = req.query.email;
-      if (!email) return res.status(400).send({ error: "Email is required" });
 
-      const result = await sessionsCollection.find({
-        tutorEmail: email,
-        status: 'approved'
-      }).toArray();
+      // ✅ check if token decoded email and query email match
+      if (req.decoded?.email !== email) {
+        return res.status(403).send({ error: 'Forbidden access' });
+      }
 
-      res.send(result);
+      const sessions = await sessionsCollection
+        .find({ tutorEmail: email, status: "approved" })
+        .toArray();
+
+      res.send(sessions);
     });
+
+    // Get all materials uploaded by a tutor
+    app.get('/tutor/materials', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      if (req.decoded?.email !== email) {
+        return res.status(403).send({ error: 'Forbidden access' });
+      }
+
+      const materials = await materialsCollection.find({ tutorEmail: email }).toArray();
+      res.send(materials);
+    });
+
 
 
 
