@@ -33,7 +33,8 @@ async function run() {
     const db = client.db('studyHub');
     const usersCollection = db.collection('users');
     const sessionsCollection = db.collection("sessions");
-    const materialsCollection = db.collection("materials")
+    const materialsCollection = db.collection("materials");
+    const bookingsCollection = db.collection("booking");
 
 
 
@@ -326,7 +327,7 @@ async function run() {
     app.get('/tutor/sessions/approved', verifyJWT, async (req, res) => {
       const email = req.query.email;
 
-      // ✅ check if token decoded email and query email match
+      // check if token decoded email and query email match
       if (req.decoded?.email !== email) {
         return res.status(403).send({ error: 'Forbidden access' });
       }
@@ -349,7 +350,7 @@ async function run() {
       res.send(materials);
     });
 
-    // Update a material
+    // Update a material by tutor
     app.patch('/tutor/materials/:id', verifyJWT, async (req, res) => {
       const id = req.params.id;
       const { title, resourceLink } = req.body;
@@ -360,11 +361,54 @@ async function run() {
       res.send(result);
     });
 
+    // delete material by tutor
+
     app.delete('/tutor/materials/:id', verifyJWT, async (req, res) => {
       const id = req.params.id;
       const result = await materialsCollection.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
+
+
+
+    // POST method for student 
+    app.post("/bookings", async (req, res) => {
+      const booking = req.body;
+
+
+      const existing = await bookingsCollection.findOne({
+        studentEmail: booking.studentEmail,
+        sessionId: booking.sessionId,
+      });
+
+      if (existing) {
+        return res.status(409).send({ message: "Already booked" });
+      }
+
+      const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
+    });
+
+
+    // get mehod for student 
+    // GET /bookings?studentEmail=student@example.com
+    app.get("/bookings", async (req, res) => {
+      const studentEmail = req.query.studentEmail;
+      if (!studentEmail) {
+        return res.status(400).send({ error: "Missing studentEmail query param" });
+      }
+
+      const bookings = await bookingsCollection
+        .find({ studentEmail }) // filter by student email
+        .toArray();
+
+      res.send(bookings);
+    });
+
+
+
+
+
 
 
     app.get('/users/:email', async (req, res) => {
