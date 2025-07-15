@@ -461,6 +461,19 @@ async function run() {
     });
 
 
+    // update a single things by student
+    app.patch('/notes/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const updated = req.body;
+      const result = await notesCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updated }
+      );
+      res.send(result);
+    });
+
+
+
 
 
 
