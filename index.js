@@ -36,7 +36,9 @@ async function run() {
     const materialsCollection = db.collection("materials");
     const bookingsCollection = db.collection("booking");
     const reviewsCollection = db.collection("reviews");
-    
+    // const ratingsCollection = db.collection("ratings");
+    const notesCollection = db.collection("notes");
+
 
 
 
@@ -437,9 +439,12 @@ async function run() {
 
 
 
-
-
-
+    // POST /notes
+    app.post('/notes', verifyJWT, async (req, res) => {
+      const note = req.body;
+      const result = await notesCollection.insertOne(note);
+      res.send({ insertedId: result.insertedId });
+    });
 
 
 
