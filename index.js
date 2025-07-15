@@ -36,6 +36,7 @@ async function run() {
     const materialsCollection = db.collection("materials");
     const bookingsCollection = db.collection("booking");
     const reviewsCollection = db.collection("reviews");
+    
 
 
 
@@ -406,11 +407,35 @@ async function run() {
     });
 
     // giving reveiw for session and rating by student
-    app.post("/reviews", async (req, res) => {
-      const review = req.body;
-      const result = await reviewsCollection.insertOne(review);
-      res.send(result);
+    // 1. Get booked sessions by user email
+    app.get('/bookings', verifyJWT, async (req, res) => {
+      const userEmail = req.query.email;
+      const bookings = await bookingsCollection.find({ studentEmail: userEmail }).toArray();
+      res.send(bookings);
     });
+
+    // 2. Get session details by sessionId
+    app.get('/sessions/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const session = await sessionsCollection.findOne({ _id: new ObjectId(id) });
+      res.send(session);
+    });
+
+    // 3. Get reviews by sessionId
+    app.get('/reviews/:sessionId', async (req, res) => {
+      const sessionId = req.params.sessionId;
+      const reviews = await reviewsCollection.find({ sessionId }).toArray();
+      res.send(reviews);
+    });
+
+    // 4. Post review (student adds review + rating)
+    app.post('/reviews', verifyJWT, async (req, res) => {
+      const reviewData = req.body; // { sessionId, studentEmail, rating, comment }
+      const result = await reviewsCollection.insertOne(reviewData);
+      res.send({ insertedId: result.insertedId });
+    });
+
+
 
 
 
