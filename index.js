@@ -446,6 +446,22 @@ async function run() {
       res.send({ insertedId: result.insertedId });
     });
 
+    // Get notes by student
+    app.get('/notes', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const notes = await notesCollection.find({ email }).toArray();
+      res.send(notes);
+    });
+
+    // Delete notes by student
+    app.delete('/notes/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const result = await notesCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+
+
 
 
 
