@@ -35,6 +35,7 @@ async function run() {
     const sessionsCollection = db.collection("sessions");
     const materialsCollection = db.collection("materials");
     const bookingsCollection = db.collection("booking");
+    const reviewsCollection = db.collection("reviews");
 
 
 
@@ -391,7 +392,6 @@ async function run() {
 
 
     // get mehod for student 
-    // GET /bookings?studentEmail=student@example.com
     app.get("/bookings", async (req, res) => {
       const studentEmail = req.query.studentEmail;
       if (!studentEmail) {
@@ -399,11 +399,19 @@ async function run() {
       }
 
       const bookings = await bookingsCollection
-        .find({ studentEmail }) // filter by student email
+        .find({ studentEmail })
         .toArray();
 
       res.send(bookings);
     });
+
+    // giving reveiw for session and rating by student
+    app.post("/reviews", async (req, res) => {
+      const review = req.body;
+      const result = await reviewsCollection.insertOne(review);
+      res.send(result);
+    });
+
 
 
 
