@@ -360,11 +360,11 @@ async function run() {
       res.send(result);
     });
 
-
-
-
-
-
+    app.delete('/tutor/materials/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const result = await materialsCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
 
 
     app.get('/users/:email', async (req, res) => {
