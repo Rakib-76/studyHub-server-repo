@@ -349,6 +349,17 @@ async function run() {
       res.send(materials);
     });
 
+    // Update a material
+    app.patch('/tutor/materials/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const { title, resourceLink } = req.body;
+      const result = await materialsCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { title, resourceLink } }
+      );
+      res.send(result);
+    });
+
 
 
 
