@@ -237,6 +237,27 @@ async function run() {
     });
 
 
+    // rejection pop up 
+    app.patch('/sessions/reject/:id', verifyJWT, async (req, res) => {
+      const sessionId = req.params.id;
+      const { reason, feedback } = req.body;
+
+      const result = await sessionsCollection.updateOne(
+        { _id: new ObjectId(sessionId) },
+        {
+          $set: {
+            status: "rejected",
+            rejectionReason: reason,
+            rejectionFeedback: feedback,
+          },
+        }
+      );
+
+      res.send(result);
+    });
+
+
+
     // view approve and regected session by tutor
     app.get("/tutor/sessions", verifyJWT, async (req, res) => {
       const email = req.query.email;
@@ -395,7 +416,7 @@ async function run() {
     });
 
 
-    // get mehod for student 
+    // get mehod for studen 
     app.get("/bookings", async (req, res) => {
       const studentEmail = req.query.studentEmail;
       if (!studentEmail) {
