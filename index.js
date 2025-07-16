@@ -29,7 +29,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
 
-    await client.connect();
+    // await client.connect();
     const db = client.db('studyHub');
     const usersCollection = db.collection('users');
     const sessionsCollection = db.collection("sessions");
@@ -44,6 +44,8 @@ async function run() {
 
     // midleware
     // Middleware: verify token
+
+
     const verifyJWT = (req, res, next) => {
       const authHeader = req.headers.authorization;
       if (!authHeader) return res.status(401).send({ message: 'Unauthorized' });
@@ -67,7 +69,6 @@ async function run() {
 
       next();
     };
-
 
 
 
@@ -480,11 +481,23 @@ async function run() {
     });
 
     // here get all materials by student
+
+
     app.get('/materials/:sessionId', verifyJWT, async (req, res) => {
       const sessionId = req.params.sessionId;
-      const result = await materialsCollection.find({ sessionId }).toArray();
-      res.send(result);
+
+      try {
+        const result = await materialsCollection
+          .find({ sessionId: new ObjectId(sessionId) }) // ✅ conversion here
+          .toArray();
+
+        res.send(result);
+      } catch (err) {
+        console.error("❌ Material fetch error:", err.message);
+        res.status(500).send({ message: "Server error" });
+      }
     });
+
 
 
 
@@ -506,8 +519,8 @@ async function run() {
 
 
 
-    await client.db('admin').command({ ping: 1 });
-    console.log("Pingged your deployment . You successfully connected to the mongodb");
+    // await client.db('admin').command({ ping: 1 });
+    // console.log("Pingged your deployment . You successfully connected to the mongodb");
 
 
   } finally {
