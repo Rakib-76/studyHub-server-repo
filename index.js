@@ -57,7 +57,7 @@ async function run() {
 
 
     const verifyJWT = (req, res, next) => {
-      const authHeader = req.headers.authorization;
+      const authHeader = req?.headers?.authorization;
       if (!authHeader) return res.status(401).send({ message: 'Unauthorized' });
 
       const token = authHeader.split(' ')[1];
@@ -152,6 +152,17 @@ async function run() {
       const users = await usersCollection.find(query).toArray();
       res.send(users);
     });
+
+    // here to get review and ratings
+    app.get("/reviews/:sessionId", async (req, res) => {
+      const sessionId = req.params.sessionId;
+      const reviews = await reviewsCollection
+        .find({ sessionId })
+        .sort({ createdAt: -1 }) // ✅ newest first
+        .toArray();
+      res.send(reviews);
+    });
+
 
     // admin view all users 
     app.get("/users", async (req, res) => {
@@ -277,6 +288,8 @@ async function run() {
       res.send(sessions);
     });
 
+
+
     // update and patch method by tutor
     app.patch('/sessions/request/:id', async (req, res) => {
       try {
@@ -362,7 +375,7 @@ async function run() {
 
     app.get('/tutor/sessions/approved', verifyJWT, async (req, res) => {
       const email = req.query.email;
-
+      // console.log(req.headers.authorization);
       // check if token decoded email and query email match
       if (req.decoded?.email !== email) {
         return res.status(403).send({ error: 'Forbidden access' });

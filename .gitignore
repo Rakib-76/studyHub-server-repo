@@ -1,3 +1,20 @@
 node_modules
 .env
 .vercel
+
+
+
+# Programming-Hero Instructors
+# 11:50 AM
+# 1. Then we need a secret. we can create it ourselves but for better security, we will use node.
+
+# ```powershell
+# node -> require('crypto').randomBytes(64).toString('hex')
+
+# // generate 64 digit digit hext secret code.
+# ```
+
+# 1. copy the code and save it in env file for security. example:
+# Programming-Hero Instructors
+# 11:51 AM
+# https://codefile.io/f/I7WNWRiztj
