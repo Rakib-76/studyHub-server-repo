@@ -6,10 +6,20 @@ const app = express();
 const jwt = require("jsonwebtoken")
 require('dotenv').config();
 const port = process.env.PORT || 3000;
+const admin = require("firebase-admin");
 
 
 app.use(cors());
 app.use(express.json());
+
+
+
+const serviceAccount = require("./firebase-admin-key.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
 
 
 
