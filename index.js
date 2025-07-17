@@ -437,7 +437,7 @@ async function run() {
 
 
 
-    // POST method for student 
+    // POST method for students
     app.post("/bookings", async (req, res) => {
       const booking = req.body;
 
