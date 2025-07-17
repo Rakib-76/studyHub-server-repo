@@ -62,6 +62,7 @@ async function run() {
 
       const token = authHeader.split(' ')[1];
       jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        console.log(err);
         if (err) return res.status(403).send({ message: 'Forbidden' });
         req.decoded = decoded;
         next();
@@ -98,7 +99,7 @@ async function run() {
       const { email } = req.body;
 
       const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-        expiresIn: '1h'
+        expiresIn: '365d'
       });
 
       res.send({ token });
@@ -134,6 +135,22 @@ async function run() {
       const result = await sessionsCollection.find().toArray();
       res.send(result);
     });
+
+
+    // only get approve session 
+    // GET only approved sessions
+    app.get("/approved-sessions", async (req, res) => {
+      try {
+        const result = await sessionsCollection
+          .find({ status: "approved" }) // ✅ filter
+          .sort({ registrationEnd: -1 })
+          .toArray();
+        res.send(result);
+      } catch (err) {
+        res.status(500).send({ error: "Failed to fetch approved sessions" });
+      }
+    });
+
 
     // session details page 
     app.get("/sessions/:id", async (req, res) => {
@@ -518,21 +535,51 @@ async function run() {
     });
 
     // here get all materials by student
-    app.get('/bookings', verifyJWT, async (req, res) => {
+    app.get('/materials', verifyJWT, async (req, res) => {
       const email = req.query.email;
-      const result = await bookingsCollection.find({ studentEmail: email }).toArray();
+      const result = await materialsCollection.find({ studentEmail: email }).toArray();
       res.send(result);
     });
 
     // here get all materials by student
 
 
+    // get by materials by student
+    //
+    app.get('/materials', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+
+      try {
+        const bookings = await bookingsCollection.find({ userEmail: email }).toArray();
+
+        const sessionIds = bookings.map(b => new ObjectId(b.sessionId));
+
+        const sessions = await sessionsCollection
+          .find({ _id: { $in: sessionIds } })
+          .project({ title: 1, description: 1 })
+          .toArray();
+
+        const result = sessions.map((s) => ({
+          sessionId: s._id.toString(),
+          sessionTitle: s.title,
+          sessionDescription: s.description,
+        }));
+
+        res.send(result);
+      } catch (err) {
+        // console.error("❌ Error fetching booked sessions:", err.message);
+        res.status(500).send({ message: "Server error" });
+      }
+    });
+
+
+    // get materials booking by student
     app.get('/materials/:sessionId', verifyJWT, async (req, res) => {
-      const sessionId = req.params.sessionId;
+      const sessionId = req?.params?.sessionId;
 
       try {
         const result = await materialsCollection
-          .find({ sessionId: new ObjectId(sessionId) }) // ✅ conversion here
+          .find({ sessionId }) // stored as string
           .toArray();
 
         res.send(result);
@@ -541,6 +588,8 @@ async function run() {
         res.status(500).send({ message: "Server error" });
       }
     });
+
+
 
 
 
