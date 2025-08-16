@@ -69,7 +69,7 @@ async function run() {
       });
     };
 
-    // Middleware: check admin role
+    // Middleware: check admin rol
     const verifyAdmin = async (req, res, next) => {
       const email = req.decoded.email;
       const user = await usersCollection.findOne({ email });
