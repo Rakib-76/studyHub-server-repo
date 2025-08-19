@@ -193,7 +193,7 @@ async function run() {
       res.send(result);
     });
 
-    // admin upadate user role
+    // admin upadate user role from ui
     app.patch("/users/role/:id", async (req, res) => {
       const { id } = req.params;
       const { role } = req.body;
