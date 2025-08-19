@@ -136,7 +136,7 @@ async function run() {
     });
 
 
-    // only get approve session 
+  
     // GET only approved sessions
     app.get("/approved-sessions", async (req, res) => {
       try {
