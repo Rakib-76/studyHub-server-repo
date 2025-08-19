@@ -93,7 +93,7 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     })
-
+// here the put token in localstorage
     app.post('/jwt', (req, res) => {
       const { email } = req.body;
 
