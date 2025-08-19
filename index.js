@@ -128,7 +128,7 @@ async function run() {
     });
 
 
-    // study session get
+    // study session get for all user
 
     app.get("/sessions", async (req, res) => {
       const result = await sessionsCollection.find().toArray();
