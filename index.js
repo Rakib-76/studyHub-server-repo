@@ -81,8 +81,7 @@ async function run() {
       next();
     };
 
-
-
+// here put all user to database
     app.post('/users', async (req, res) => {
       const email = req.body.email;
       const userExists = await usersCollection.findOne({ email })
