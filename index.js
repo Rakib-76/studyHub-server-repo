@@ -228,7 +228,7 @@ async function run() {
       res.send(result);
     });
 
-    // Reject session
+  
     // Just update status to "rejected (only admin)"
     app.patch('/admin/sessions/reject/:id', async (req, res) => {
       const id = req.params.id;
